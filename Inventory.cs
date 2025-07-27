@@ -63,6 +63,11 @@ namespace InventorySystem
         private float gridStartX;
         private float gridStartY;
 
+        // 预览框相关变量
+        private Rect previewRect;
+        private Color previewColor;
+        private bool showPreview = false;
+
         // 生命值变化事件
         public delegate void HealthChanged(float current, float max);
         public event HealthChanged OnHealthChanged;
@@ -178,6 +183,7 @@ namespace InventorySystem
             isDragging = false;
             isPotentialDrag = false;
             isCtrlDrop = false;
+            showPreview = false; // 重置预览状态
         }
 
         public void ClearInventory()
@@ -575,6 +581,7 @@ namespace InventorySystem
             {
                 GUI.depth = -20;
                 DrawDraggedItem();
+                DrawPlacementPreview(); // 绘制放置预览框
             }
         }
 
@@ -1028,6 +1035,58 @@ namespace InventorySystem
             GUI.matrix = originalMatrix;
             GUI.color = Color.white;
         }
+
+        // 绘制放置预览框（可放置为淡绿色，不可放置为红色）
+        private void DrawPlacementPreview()
+        {
+            Item draggedItem = itemManager.GetItemByID(draggedSlot.itemID);
+            if (draggedItem == null) return;
+
+            // 计算旋转后的尺寸
+            int currentWidth = draggedItemRotation == 0 ? draggedItem.gridSize.x : draggedItem.gridSize.y;
+            int currentHeight = draggedItemRotation == 0 ? draggedItem.gridSize.y : draggedItem.gridSize.x;
+
+            // 转换鼠标位置到UI坐标系（Y轴需要翻转）
+            Vector2 mousePos = Event.current.mousePosition;
+            mousePos.y = Screen.height - mousePos.y;  // 转换为GUI坐标
+
+            // 计算鼠标在背包网格中的相对坐标（使用相对位置而非绝对位置）
+            // 关键修复：使用相对于背包区域的坐标计算，而非屏幕绝对坐标
+            float relativeMouseX = mousePos.x - gridStartX;
+            float relativeMouseY = mousePos.y - gridStartY;
+
+            int mouseGridX = Mathf.FloorToInt((relativeMouseX - slotSpacing) / (slotSize + slotSpacing));
+            int mouseGridY = Mathf.FloorToInt((relativeMouseY - slotSpacing) / (slotSize + slotSpacing));
+
+            // 限制网格坐标在有效范围内
+            mouseGridX = Mathf.Clamp(mouseGridX, 0, gridWidth - currentWidth);
+            mouseGridY = Mathf.Clamp(mouseGridY, 0, gridHeight - currentHeight);
+
+            // 计算预览框位置和大小（基于当前网格起始位置）
+            // 关键修复：始终从当前计算的gridStartX和gridStartY开始定位
+            float previewX = gridStartX + mouseGridX * (slotSize + slotSpacing) + slotSpacing;
+            float previewY = gridStartY + (gridHeight - mouseGridY - currentHeight) * (slotSize + slotSpacing) + slotSpacing;
+            float previewWidth = currentWidth * slotSize + (currentWidth - 1) * slotSpacing;
+            float previewHeight = currentHeight * slotSize + (currentHeight - 1) * slotSpacing;
+            previewRect = new Rect(previewX, previewY, previewWidth, previewHeight);
+
+            // 判断是否可以放置 - 使用相对位置判断
+            bool inBackpackArea = backpackAreaRect.Contains(mousePos);
+            bool spaceAvailable = IsSpaceAvailable(mouseGridX, mouseGridY, currentWidth, currentHeight, draggedItemUniqueID);
+            bool canPlace = inBackpackArea && spaceAvailable;
+
+            // 设置预览颜色（可放置：淡绿色，不可放置：红色）
+            previewColor = canPlace ? new Color(0.3f, 1f, 0.3f, 0.5f) : new Color(1f, 0.3f, 0.3f, 0.5f);
+
+            // 保存当前GUI颜色并绘制预览框
+            Color originalColor = GUI.color;
+            GUI.color = previewColor;
+            GUI.DrawTexture(previewRect, whiteTexture);
+            GUI.color = originalColor;
+
+            showPreview = true;
+        }
+
 
         private void DrawDropZone()
         {
