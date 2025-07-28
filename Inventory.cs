@@ -1088,8 +1088,8 @@ namespace InventorySystem
             }
 
             // 在玩家前方生成物品
-            Vector3 dropPos = playerTransform.position + playerTransform.forward * 1.5f;
-            dropPos.y = playerTransform.position.y + 0.5f;
+            Vector3 dropPos = playerTransform.position + playerTransform.forward * 0.2f;
+            dropPos.y = playerTransform.position.y + 0.01f;
 
             GameObject dropObj = null;
             if (item.itemPrefab != null)

@@ -14,9 +14,6 @@ namespace InventorySystem
         [Header("视觉设置")]
         public bool useCustomModel = false; // 是否使用自定义模型
         public GameObject customModel;      // 自定义模型
-        public float floatHeight = 0.1f;    // 漂浮高度
-        public float floatSpeed = 1f;       // 漂浮速度
-        public float rotateSpeed = 30f;     // 旋转速度
 
         private Inventory inventorySystem;  // 背包系统引用
         private Transform playerTransform;  // 玩家位置引用
@@ -77,7 +74,7 @@ namespace InventorySystem
         {
             GameObject textObject = new GameObject("PickupText");
             textObject.transform.parent = transform;
-            textObject.transform.localPosition = new Vector3(0, 1f, 0); // 稍微高于物品
+            textObject.transform.localPosition = new Vector3(0, 0.5f, 0); // 稍微高于物品
             textObject.transform.localRotation = Quaternion.identity;
 
             pickupText = textObject.AddComponent<TextMesh>();
@@ -135,8 +132,7 @@ namespace InventorySystem
             if (item == null || isPickedUp)
                 return;
 
-            // 物品漂浮动画
-            FloatAnimation();
+
 
             // 更新拾取提示显示
             UpdatePickupText();
@@ -167,27 +163,14 @@ namespace InventorySystem
                 pickupText.text = inRange ? $"按E拾取 {item.itemName}" : "";
 
                 // 始终面向玩家
-                if (playerTransform != null)
+                
                 {
-                    Vector3 lookAtPos = playerTransform.position;
-                    lookAtPos.y = transform.position.y; // 只在水平方向面向玩家
-                    transform.LookAt(lookAtPos);
+                    
                 }
             }
         }
 
-        /// <summary>
-        /// 物品漂浮动画
-        /// </summary>
-        private void FloatAnimation()
-        {
-            // 上下漂浮
-            float yOffset = Mathf.Sin(Time.time * floatSpeed) * floatHeight;
-            transform.position = originalPosition + new Vector3(0, yOffset, 0);
 
-            // 旋转
-            transform.Rotate(Vector3.up, rotateSpeed * Time.deltaTime);
-        }
 
         /// <summary>
         /// 查找背包系统
@@ -295,6 +278,12 @@ namespace InventorySystem
                     itemCollider.enabled = false;
                 if (pickupText != null)
                     pickupText.text = "";
+
+                // 关键修改：显示物品价值弹窗
+                if (ItemPopupManager.Instance != null)
+                {
+                    ItemPopupManager.Instance.ShowItemPopup(item);
+                }
 
                 // 延迟销毁避免UI错误
                 Destroy(gameObject, 0.1f);

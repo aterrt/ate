@@ -16,11 +16,11 @@ namespace InventorySystem
     public enum Rarity
     {
         Common,       // 普通（白色）
-        Uncommon,     //  uncommon（绿色）
+        Uncommon,     // 非凡（绿色）
         Rare,         // 稀有（蓝色）
         Epic,         // 史诗（紫色）
         Legendary,    // 传说（金色）
-        Red           // 红色
+        Secret        // 保密级（红色）
     }
 
     // 装备位置枚举
@@ -106,8 +106,8 @@ namespace InventorySystem
                 case Rarity.Legendary:
                     itemValue = random.Next(39, 61); // 39-60
                     break;
-                case Rarity.Red:
-                    itemValue = random.Next(39, 61); // 39-60
+                case Rarity.Secret:  // 新增保密级（红色）价值范围
+                    itemValue = random.Next(80, 150); // 61-100（可自行调整）
                     break;
                 default:
                     itemValue = 0;
@@ -124,19 +124,19 @@ namespace InventorySystem
         }
 
         /// <summary>
-        /// 获取稀有度对应的颜色
+        /// 获取稀有度对应的颜色（包含保密级红色）
         /// </summary>
         public Color GetRarityColor()
         {
             switch (rarity)
             {
-                case Rarity.Common: return new Color(0.8f, 0.8f, 0.8f, 0.5f); // 白色
-                case Rarity.Uncommon: return new Color(0, 1f, 0, 0.5f); // 绿色
-                case Rarity.Rare: return new Color(0, 0.5f, 1f, 0.5f); // 蓝色
-                case Rarity.Epic: return new Color(0.6f, 0, 1f, 0.5f); // 紫色
-                case Rarity.Legendary: return new Color(1f, 0.5f, 0, 0.5f); // 金色
-                case Rarity.Red: return new Color(1f, 0, 0, 0.5f); // 红色
-                default: return new Color(0.8f, 0.8f, 0.8f, 0.5f); // 默认灰色
+                case Rarity.Common: return new Color(0.2f, 0.2f, 0.2f, 0.8f); // 白色（带透明度）
+                case Rarity.Uncommon: return new Color(0, 0.8f, 0, 0.8f); // 淡绿色（降低绿色饱和度并增加透明度）
+                case Rarity.Rare: return new Color(0, 0.2f, 0.8f, 0.7f); // 淡蓝色
+                case Rarity.Epic: return new Color(0.5f, 0, 0.8f, 0.7f); // 淡紫色
+                case Rarity.Legendary: return new Color(0.9f, 0.4f, 0, 0.9f); // 淡金色
+                case Rarity.Secret: return new Color(0.9f, 0, 0, 0.6f); // 淡红色
+                default: return new Color(0.8f, 0.8f, 0.8f, 0.7f); // 默认淡灰色
             }
         }
 
